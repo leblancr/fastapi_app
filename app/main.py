@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import Depends
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
+from database import SessionLocal, engine, Base
 
 class Task(BaseModel):
     id: int | None = None
@@ -17,34 +18,43 @@ tasks = []
 task_id = 0
 
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+@app.post("/tasks", status_code=201)
+def create_task(task: Task, db: Session = Depends(get_db)):
+    new_task = TaskDB(title=task.title)
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+    return new_task
+
+
 @app.delete("/tasks/{task_id}", status_code=204)
-def delete_task(task_id: int):
-    for i, task in enumerate(tasks):
-        if task.id == task_id:
-            del tasks[i]
-            return None
-    raise HTTPException(status_code=404, detail="task not found")
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    task = db.query(TaskDB).filter(TaskDB.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="task not found")
+
+    db.delete(task)
+    db.commit()
 
 
 @app.get("/tasks")
-def get_tasks():
-    return tasks
+def get_tasks(db: Session = Depends(get_db)):
+    return db.query(TaskDB).all()
 
 
 @app.get("/tasks/{task_id}")
-def get_task(task_id: int):
-    for task in tasks:
-        if task.id == task_id:
-            return task
-    return {"error": "task not found"}
-
-
-@app.post("/tasks, status_code=201")
-def create_task(task: Task):
-    global task_id
-    task_id += 1
-    task.id = task_id
-    tasks.append(task)
+def get_task(task_id: int, db: Session = Depends(get_db)):
+    task = db.query(TaskDB).filter(TaskDB.id == task_id).first()
+    if not task:
+        raise HTTPException(status_code=404, detail="task not found")
     return task
 
 

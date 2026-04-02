@@ -15,3 +15,5 @@ only then consider database
 
 To run:
 uvicorn app.main:app --reload
+
+sudo -u postgres createdb -O rich fastapi_app_db
