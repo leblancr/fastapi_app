@@ -2,9 +2,10 @@ from fastapi import Depends
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, engine, Base
+from sqlalchemy.orm import Session
+from models import TaskDB
 
 class Task(BaseModel):
-    id: int | None = None
     title: str
 
 app = FastAPI()
