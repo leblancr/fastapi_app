@@ -28,7 +28,7 @@ main.py = handles HTTP requests and responses only
 services/ = all database + application logic
 routes should not touch SQLAlchemy directly
 
-fastapi_app/
+fastapi_app_base/
 │
 ├── main.py
 ├── models.py
