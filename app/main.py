@@ -4,10 +4,16 @@ from database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
 from models import Task
 from schemas import TaskCreate, TaskResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-Base.metadata.create_all(bind=engine)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # client wants to get
 @app.get("/")
@@ -25,11 +31,7 @@ def get_db():
 
 @app.post("/tasks", response_model=TaskResponse, status_code=201)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    new_task = Task(title=task.title)
-    db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
-    return new_task
+    return task_service.create_task(db, task.title)
 
 
 @app.delete("/tasks/{task_id}", status_code=204)
