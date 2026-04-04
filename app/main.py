@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from models import Task
 from schemas import TaskCreate, TaskResponse
 from fastapi.middleware.cors import CORSMiddleware
+from app.services import task_service
 
 app = FastAPI()
 app.add_middleware(
