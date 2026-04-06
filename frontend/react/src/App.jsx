@@ -1,120 +1,111 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [tasks, setTasks] = useState([])
+  const [editingId, setEditingId] = useState(null)
+  const [editValue, setEditValue] = useState("")
+  const editRef = useRef(null)
+
+  const loadTasks = async () => {
+    const res = await fetch('http://localhost:8000/tasks')
+    const data = await res.json()
+    setTasks(data)
+  }
+
+  useEffect(() => {
+    loadTasks()
+  }, [])
+
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (editingId !== null && editRef.current && !editRef.current.contains(e.target)) {
+        setEditingId(null)
+        setEditValue("")
+      }
+    }
+
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [editingId])
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
+      <h1>Tasks</h1>
 
-      <div className="ticks"></div>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault()
+          const title = e.target.title.value
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          await fetch('http://localhost:8000/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title }),
+          })
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          e.target.reset()
+          loadTasks()
+        }}
+      >
+        <input name="title" placeholder="New task" required />
+        <button type="submit">Add</button>
+      </form>
+      <ul>
+        {tasks.map((task) => (
+          <li key={task.id} className="task">
+            {editingId === task.id ? (
+              <div ref={editRef}>
+                <input
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                />
+                <button
+                  onClick={async () => {
+                    await fetch(`http://localhost:8000/tasks/${task.id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ title: editValue }),
+                    })
+
+                    setEditingId(null)
+                    setEditValue("")
+                    loadTasks()
+                  }}
+                >
+                  save
+                </button>
+              </div>
+            ) : (
+              <>
+                <span style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+                  {task.title}
+                </span>
+
+                <div className="actions">
+                  <button
+                    onClick={() => {
+                      setEditingId(task.id)
+                      setEditValue(task.title)
+                    }}
+                  >
+                    edit
+                  </button>
+
+                  <button onClick={() => toggleTask(task.id)}>
+                    toggle
+                  </button>
+
+                  <button onClick={() => deleteTask(task.id)}>
+                    delete
+                  </button>
+                </div>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

@@ -2,7 +2,6 @@ from fastapi import Depends
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
-from models import Task
 from schemas import TaskCreate, TaskResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.services import task_service
@@ -37,51 +36,25 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
 
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: int, db: Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == task_id).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="task not found")
-
-    db.delete(task)
-    db.commit()
+    task_service.delete_task(db, task_id)
 
 
 @app.get("/tasks", response_model=list[TaskResponse])
 def get_tasks(db: Session = Depends(get_db)):
-    return db.query(Task).all()
+    return task_service.get_tasks(db)
 
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: int, db: Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == task_id).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="task not found")
-    return task
+    return task_service.get_task(db, task_id)
 
 
 @app.patch("/tasks/{task_id}/toggle", response_model=TaskResponse)
 def toggle_task_completed(task_id: int, db: Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == task_id).first()
-
-    if not task:
-        raise HTTPException(status_code=404, detail="task not found")
-
-    task.completed = not task.completed
-    db.commit()
-    db.refresh(task)
-
-    return task
+    return task_service.toggle_task_completed(db, task_id)
 
 
 @app.put("/tasks/{task_id}", response_model=TaskResponse)
 def update_task(task_id: int, updated_task: TaskCreate, db: Session = Depends(get_db)):
-    task = db.query(Task).filter(Task.id == task_id).first()
-
-    if not task:
-        raise HTTPException(status_code=404, detail="task not found")
-
-    task.title = updated_task.title
-    db.commit()
-    db.refresh(task)
-
-    return task
+    return task_service.update_task(db, task_id, updated_task)
 

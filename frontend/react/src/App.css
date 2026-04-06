@@ -182,3 +182,23 @@
     border-right-color: var(--border);
   }
 }
+.title {
+  flex: 1;
+}
+.task {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+}
+
+.actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  display: flex;
+  gap: 6px;
+}
+
+.task:hover .actions {
+  opacity: 1;
+}
