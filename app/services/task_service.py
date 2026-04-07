@@ -30,6 +30,12 @@ def get_tasks(db: Session):
 
 def toggle_task_completed(db: Session, task_id: int):
     task = get_task(db, task_id)
+
+    # add these lines right here
+    print("before:", task.completed)
+    task.completed = not task.completed
+    print("after:", task.completed)
+
     db.commit()
     db.refresh(task)
     return task

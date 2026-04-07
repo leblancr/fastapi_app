@@ -7,14 +7,33 @@ function App() {
   const [editValue, setEditValue] = useState("")
   const editRef = useRef(null)
 
-  const loadTasks = async () => {
-    const res = await fetch('http://localhost:8000/tasks')
+  const deleteTask = async (id) => {
+    await fetch(`http://localhost:8000/tasks/${id}`, {
+      method: "DELETE",
+    })
+
+    fetchTasks()
+  }
+
+  const fetchTasks = async () => {
+    const res = await fetch("http://localhost:8000/tasks")
     const data = await res.json()
+    data.sort((a, b) => a.id - b.id)
     setTasks(data)
   }
 
+  const toggleTask = async (id) => {
+    await fetch(`http://localhost:8000/tasks/${id}/toggle`, {
+      method: "PATCH",
+    })
+
+    await fetchTasks()
+  }
+
   useEffect(() => {
-    loadTasks()
+    setTimeout(() => {
+      fetchTasks()
+    }, 0)
   }, [])
 
   useEffect(() => {
@@ -45,7 +64,7 @@ function App() {
           })
 
           e.target.reset()
-          loadTasks()
+          fetchTasks()
         }}
       >
         <input name="title" placeholder="New task" required />
@@ -70,7 +89,7 @@ function App() {
 
                     setEditingId(null)
                     setEditValue("")
-                    loadTasks()
+                    fetchTasks()
                   }}
                 >
                   save
