@@ -294,3 +294,18 @@ code {
     border-right-color: var(--border);
   }
 }
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text {
+  flex: 1;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
