@@ -2,40 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
+  /* ---------------- STATE ---------------- */
   const [tasks, setTasks] = useState([])
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState("")
+
+  /* ---------------- REFS ---------------- */
   const editRef = useRef(null)
 
-  const deleteTask = async (id) => {
-    await fetch(`http://localhost:8000/tasks/${id}`, {
-      method: "DELETE",
-    })
-
-    fetchTasks()
-  }
-
-  const fetchTasks = async () => {
-    const res = await fetch("http://localhost:8000/tasks")
-    const data = await res.json()
-    data.sort((a, b) => a.id - b.id)
-    setTasks(data)
-  }
-
-  const toggleTask = async (id) => {
-    await fetch(`http://localhost:8000/tasks/${id}/toggle`, {
-      method: "PATCH",
-    })
-
-    await fetchTasks()
-  }
-
-  useEffect(() => {
-    setTimeout(() => {
-      fetchTasks()
-    }, 0)
-  }, [])
-
+  /* ---------------- EFFECTS (React lifecycle hooks) ------ */
+  //
   useEffect(() => {
     const handleClick = (e) => {
       if (editingId !== null && editRef.current && !editRef.current.contains(e.target)) {
@@ -48,31 +24,93 @@ function App() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [editingId])
 
+  //
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch("http://localhost:8000/tasks")
+      const data = await res.json()
+      setTasks(data.sort((a, b) => a.id - b.id))
+    }
+
+    load() //
+  }, [])
+
+  /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
+  const createTask = async (text) => {
+  const res = await fetch("http://localhost:8000/tasks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text }),
+  })
+
+  const newTask = await res.json()
+
+  setTasks(prev =>
+    [...prev, newTask].sort((a, b) => a.id - b.id)
+  )
+
+  return newTask
+}
+
+const deleteTask = async (id) => {
+    await fetch(`http://localhost:8000/tasks/${id}`, {
+      method: "DELETE",
+    })
+
+    setTasks(prev => prev.filter(t => t.id !== id))
+  }
+
+  const toggleTask = async (id) => {
+    await fetch(`http://localhost:8000/tasks/${id}/toggle`, {
+      method: "PATCH",
+    })
+
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === id ? { ...t, completed: !t.completed } : t
+      ).sort((a, b) => a.id - b.id)
+    )
+  }
+
+  const updateTask = async (id, text) => {
+    await fetch(`http://localhost:8000/tasks/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    })
+
+    setTasks(prev =>
+      prev.map(t =>
+        t.id === id ? { ...t, text } : t
+      )
+    )
+  }
+
+  /* ---------------- Return (UI) ---------------- */
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Tasks</h1>
 
+      {/* create task section */}
       <form
         onSubmit={async (e) => {
           e.preventDefault()
-          const title = e.target.title.value
-
-          await fetch('http://localhost:8000/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title }),
-          })
-
+          const text = e.target.text.value
+          if (!text) return
+          await createTask(text)
           e.target.reset()
-          fetchTasks()
         }}
       >
-        <input name="title" placeholder="New task" required />
+        <input name="text" placeholder="New task" required />
         <button type="submit">Add</button>
       </form>
+
+      {/* task list section */}
       <ul>
         {tasks.map((task) => (
-          <li key={task.id} className="task">
+          <li key={task.id} className="row">
+
+            {/* edit task block */}
             {editingId === task.id ? (
               <div ref={editRef}>
                 <input
@@ -80,32 +118,24 @@ function App() {
                   onChange={(e) => setEditValue(e.target.value)}
                 />
                 <button
-                  onClick={async () => {
-                    await fetch(`http://localhost:8000/tasks/${task.id}`, {
-                      method: 'PUT',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ title: editValue }),
-                    })
-
-                    setEditingId(null)
-                    setEditValue("")
-                    fetchTasks()
-                  }}
+                  onClick={() => updateTask(task.id, editValue)}
                 >
                   save
                 </button>
               </div>
             ) : (
               <>
-                <span style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-                  {task.title}
+                {/* task completed toggle display */}
+                <span className="text"  style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+                  {task.text}
                 </span>
 
+                {/* actions */}
                 <div className="actions">
                   <button
                     onClick={() => {
                       setEditingId(task.id)
-                      setEditValue(task.title)
+                      setEditValue(task.text)
                     }}
                   >
                     edit

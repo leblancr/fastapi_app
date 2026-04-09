@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models import Task
 
-def create_task(db: Session, title: str):
-    task = Task(title=title)
+def create_task(db: Session, text: str):
+    task = Task(text=text)
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -43,7 +43,7 @@ def toggle_task_completed(db: Session, task_id: int):
 
 def update_task(db: Session, task_id: int, updated: TaskCreate):
     task = get_task(db, task_id)
-    task.title = updated.title
+    task.text = updated.text
     db.commit()
     db.refresh(task)
     return task

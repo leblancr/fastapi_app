@@ -17,7 +17,7 @@ class Task(Base):
         completed: boolean flag, defaults to False
 
     Notes:
-        columns: (id, title, completed)
+        columns: (id, text, completed)
         types: (Integer, String, Boolean)
         defaults: (default=False)
 
@@ -27,4 +27,4 @@ class Task(Base):
 
     completed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
+    text = Column(String, nullable=False)

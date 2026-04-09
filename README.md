@@ -29,6 +29,8 @@ And reverse on output:
 PostgreSQL → TaskDB → Task (response)
 
 To start frontend:
-cd frontend/react
+cd react
 npm run dev
-
+or
+cd vue
+npm run dev

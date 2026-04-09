@@ -11,7 +11,7 @@ class TaskCreate(BaseModel):
     Fields:
         title: string, required task title
     """
-    title: str
+    text: str
 
 
 class TaskResponse(BaseModel):
@@ -22,12 +22,12 @@ class TaskResponse(BaseModel):
 
     Fields:
         id: database-generated task ID
-        title: task title string
+        text: task text string
         completed: boolean status of task completion
     """
 
     id: int
-    title: str
+    text: str
     completed: bool
 
     class Config:
