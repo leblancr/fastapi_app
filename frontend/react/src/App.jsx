@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
+// app component: owns state and data loading
 function App() {
-  /* ----------------
+  /* ---------------- STATE ----------------
     useState
     changes → re-render happens
     useRef
     changes → NO re-render
-  ---------------- */
-  /* ---------------- STATE ---------------- */
+  */
   const [tasks, setTasks] = useState([])
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState("")
@@ -17,12 +17,12 @@ function App() {
   const editRef = useRef(null)
 
   /* ---------------- EFFECTS (React lifecycle hooks) ------ */
-  //
+  // close edit mode when clicking outside
   useEffect(() => {
     const handleClick = (e) => {
       if (editingId !== null && editRef.current && !editRef.current.contains(e.target)) {
-        setEditingId(null)
-        setEditValue("")
+        setEditingId(null)  // no task is being edited anymore
+        setEditValue("")  // clear the input field
       }
     }
 
@@ -30,15 +30,16 @@ function App() {
     return () => document.removeEventListener("mousedown", handleClick)
   }, [editingId])
 
-  //
+  // load tasks once on page load
   useEffect(() => {
     const load = async () => {
       const res = await fetch("http://localhost:8000/tasks")
       const data = await res.json()
+      // update task locally after backend save
       setTasks(data.sort((a, b) => a.id - b.id))
     }
 
-    load() //
+    load()  //
   }, [])
 
   /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
@@ -113,54 +114,73 @@ const deleteTask = async (id) => {
 
       {/* task list section */}
       <ul>
-        {tasks.map((task) => (
-          <li key={task.id} className="row">
-
-            {/* edit task block */}
-            {editingId === task.id ? (
-              <div ref={editRef}>
-                <input
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                />
-                <button
-                  onClick={() => updateTask(task.id, editValue)}
-                >
-                  save
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* task completed toggle display */}
-                <span className="text"  style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-                  {task.text}
-                </span>
-
-                {/* actions */}
-                <div className="actions">
-                  <button
-                    onClick={() => {
-                      setEditingId(task.id)
-                      setEditValue(task.text)
-                    }}
-                  >
-                    edit
-                  </button>
-
-                  <button onClick={() => toggleTask(task.id)}>
-                    toggle
-                  </button>
-
-                  <button onClick={() => deleteTask(task.id)}>
-                    delete
-                  </button>
-                </div>
-              </>
-            )}
-          </li>
+        {tasks.map(task => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            editingId={editingId}
+            editValue={editValue}
+            setEditingId={setEditingId}
+            setEditValue={setEditValue}
+            updateTask={updateTask}
+            toggleTask={toggleTask}
+            deleteTask={deleteTask}
+          />
         ))}
       </ul>
     </div>
+  )
+}
+
+// task item component: renders a single task row
+function TaskItem({
+  task,
+  editingId,
+  editValue,
+  setEditingId,
+  setEditValue,
+  updateTask,
+  toggleTask,
+  deleteTask,
+  editRef
+}) {
+  return (
+    <li className="row">
+      {editingId === task.id ? (
+        <div ref={editRef}>
+          <input
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+          />
+          <button onClick={() => updateTask(task.id, editValue)}>
+            save
+          </button>
+        </div>
+      ) : (
+        <>
+          <span style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+            {task.text}
+          </span>
+
+          <div className="actions">
+            <button onClick={() => {
+              setEditingId(task.id)
+              setEditValue(task.text)
+            }}>
+              edit
+            </button>
+
+            <button onClick={() => toggleTask(task.id)}>
+              toggle
+            </button>
+
+            <button onClick={() => deleteTask(task.id)}>
+              delete
+            </button>
+          </div>
+        </>
+      )}
+    </li>
   )
 }
 

@@ -185,7 +185,6 @@
 .row {
   display: flex;
   align-items: center;
-  margin-bottom: 6px;
   justify-content: flex-start;
   width: 100%;
   border: 1px solid transparent;
