@@ -34,3 +34,12 @@ npm run dev
 or
 cd vue
 npm run dev
+
+State:
+Vue code:
+const tasks = ref([])
+const newTask = ref('')
+
+React equivalent:
+const [tasks, setTasks] = useState([])
+const [newTask, setNewTask] = useState('')

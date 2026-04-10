@@ -2,6 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
+  /* ----------------
+    useState
+    changes → re-render happens
+    useRef
+    changes → NO re-render
+  ---------------- */
   /* ---------------- STATE ---------------- */
   const [tasks, setTasks] = useState([])
   const [editingId, setEditingId] = useState(null)

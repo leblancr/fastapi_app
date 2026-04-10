@@ -192,6 +192,7 @@
   box-sizing: border-box;
 }
 .row:hover {
+  background-color: rgb(96 139 168 / 0.2);
   border: 1px solid blueviolet;
 }
 .actions {
@@ -200,6 +201,7 @@
   display: flex;
   gap: 8px;
   margin-left: auto;
+  padding: 6px 12px;
   pointer-events: none;
 }
 
@@ -208,3 +210,8 @@
   pointer-events: auto;
 }
 
+.text {
+  transition: opacity 0.15s ease;
+  display: flex;
+  margin-left: 8px;
+}

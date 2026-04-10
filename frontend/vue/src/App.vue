@@ -1,9 +1,18 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const tasks = ref([])
-const newTask = ref('')
+/* ---------------- STATE ---------------- */
+// Vue is creating a reactive reference object
+// ref() returns object:
+// tasks = {
+//  value: []
+// hidden internal tracking stuff
+// }
+// a ref is designed to hold one piece of data only.
+const tasks = ref([])  // reactive wrapper object holding your array
+const newTask = ref('')  // reactive wrapper object holding your string
 
+/* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
 const createTask = async () => {
   if (!newTask.value.trim()) return
 
@@ -43,11 +52,17 @@ const toggleTask = async (id) => {
   )
 }
 
+/* ------ lifecycle ------ */
 onMounted(() => {
   loadTasks()
 })
 </script>
 
+<!-- ----------------
+<template> is compiled by vue
+vue internally generates a render function for you
+everything in <script setup> is auto-exposed to the template
+---------------- -->
 <template>
   <div style="padding: 2rem; max-width: 600px; margin: 0 auto;">
     <h1>Tasks</h1>
