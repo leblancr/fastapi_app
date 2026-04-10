@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 /* ---------------- STATE ---------------- */
 // Vue is creating a reactive reference object
@@ -11,6 +11,8 @@ import { ref, onMounted } from 'vue'
 // a ref is designed to hold one piece of data only.
 const tasks = ref([])  // reactive wrapper object holding your array
 const newTask = ref('')  // reactive wrapper object holding your string
+const editingId = ref(null)
+const editValue = ref('')
 
 /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
 const createTask = async () => {
@@ -52,9 +54,26 @@ const toggleTask = async (id) => {
   )
 }
 
+const saveEdit = (id) => {
+  tasks.value = tasks.value.map(t =>
+    t.id === id ? { ...t, text: editValue.value } : t
+  )
+
+  editingId.value = null
+  editValue.value = ''
+}
+
+const startEdit = (task) => {
+  editingId.value = task.id
+  editValue.value = task.text
+}
+
 /* ------ lifecycle ------ */
 onMounted(() => {
   loadTasks()
+})
+
+onBeforeUnmount(() => {
 })
 </script>
 
@@ -66,20 +85,36 @@ everything in <script setup> is auto-exposed to the template
 <template>
   <div style="padding: 2rem; max-width: 600px; margin: 0 auto;">
     <h1>Tasks</h1>
-
+    <input v-model="newTask" placeholder="New task" />
+    <button @click="createTask">Add</button>
     <ul>
       <li v-for="task in tasks" :key="task.id" class="row">
-        <span
-          class="text"
-          :style="{ textDecoration: task.completed ? 'line-through' : 'none' }"
-        >
-          {{ task.text }}
-        </span>
+        <!-- edit mode - Vue only re-renders when you replace tasks.value,
+         so saving must update the array, not just the input (task.text).
+        -->
+        <div v-if="editingId === task.id" data-editing>
+          <input v-model="editValue" />
 
-        <div class="actions">
-          <button @click="toggleTask(task.id)">toggle</button>
-          <button @click="deleteTask(task.id)">delete</button>
+          <!-- edit mode -->
+          <button
+            @click="saveEdit(task.id)"
+          >
+            save
+          </button>
         </div>
+
+        <!-- tasks not being edited -->
+        <template v-else>
+          <span :style="{ textDecoration: task.completed ? 'line-through' : 'none' }">
+            {{ task.text }}
+          </span>
+
+          <div class="actions">
+            <button @click="startEdit(task)">edit</button>
+            <button @click="toggleTask(task.id)">toggle</button>
+            <button @click="deleteTask(task.id)">delete</button>
+          </div>
+        </template>
       </li>
     </ul>
   </div>

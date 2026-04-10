@@ -36,10 +36,30 @@ cd vue
 npm run dev
 
 State:
-Vue code:
+React: tasks + setTasks
+Vue:   tasks.value
+
+React code:
+const [tasks, setTasks] = useState([])
+const [newTask, setNewTask] = useState('')
+
+Vue equivalent:
 const tasks = ref([])
 const newTask = ref('')
 
-React equivalent:
-const [tasks, setTasks] = useState([])
-const [newTask, setNewTask] = useState('')
+State
+React: useState([])
+Vue:   ref([])
+
+Update list
+React: setTasks(...)
+Vue:   tasks.value = ...
+
+Loop
+React: map()
+Vue:   v-for
+
+Click
+React: onClick
+Vue:   @click
+
