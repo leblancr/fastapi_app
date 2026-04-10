@@ -54,9 +54,15 @@ const toggleTask = async (id) => {
   )
 }
 
-const saveEdit = (id) => {
+const updateTask = async (id, text) => {
+  await fetch(`http://localhost:8000/tasks/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  })
+
   tasks.value = tasks.value.map(t =>
-    t.id === id ? { ...t, text: editValue.value } : t
+    t.id === id ? { ...t, text } : t
   )
 
   editingId.value = null
@@ -66,6 +72,10 @@ const saveEdit = (id) => {
 const startEdit = (task) => {
   editingId.value = task.id
   editValue.value = task.text
+}
+
+const handleClick = () => {
+  console.log('click detected')
 }
 
 /* ------ lifecycle ------ */
@@ -83,8 +93,10 @@ vue internally generates a render function for you
 everything in <script setup> is auto-exposed to the template
 ---------------- -->
 <template>
-  <div style="padding: 2rem; max-width: 600px; margin: 0 auto;">
-    <h1>Tasks</h1>
+  <div
+    style="padding: 2rem; max-width: 600px; margin: 0 auto;"
+  >
+  <h1>Tasks</h1>
     <input v-model="newTask" placeholder="New task" />
     <button @click="createTask">Add</button>
     <ul>
@@ -92,15 +104,9 @@ everything in <script setup> is auto-exposed to the template
         <!-- edit mode - Vue only re-renders when you replace tasks.value,
          so saving must update the array, not just the input (task.text).
         -->
-        <div v-if="editingId === task.id" data-editing>
+        <div v-if="editingId === task.id">
           <input v-model="editValue" />
-
-          <!-- edit mode -->
-          <button
-            @click="saveEdit(task.id)"
-          >
-            save
-          </button>
+          <button @click="updateTask(task.id, editValue)">save</button>
         </div>
 
         <!-- tasks not being edited -->
@@ -110,7 +116,7 @@ everything in <script setup> is auto-exposed to the template
           </span>
 
           <div class="actions">
-            <button @click="startEdit(task)">edit</button>
+            <button @click.stop="startEditq(task)">edit</button>
             <button @click="toggleTask(task.id)">toggle</button>
             <button @click="deleteTask(task.id)">delete</button>
           </div>
