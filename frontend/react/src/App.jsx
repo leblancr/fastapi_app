@@ -84,7 +84,10 @@ const deleteTask = async (id) => {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
-    })
+    },
+    setEditingId(null),
+    setEditValue("")
+    )
 
     setTasks(prev =>
       prev.map(t =>
