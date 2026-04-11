@@ -1,9 +1,12 @@
 from fastapi import HTTPException
+from schemas import TaskCreate
 from sqlalchemy.orm import Session
 from models import Task
 
 def create_task(db: Session, text: str):
     task = Task(text=text)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
     db.add(task)
     db.commit()
     db.refresh(task)
@@ -30,17 +33,13 @@ def get_tasks(db: Session):
 
 def toggle_task_completed(db: Session, task_id: int):
     task = get_task(db, task_id)
-
-    # add these lines right here
-    print("before:", task.completed)
     task.completed = not task.completed
-    print("after:", task.completed)
-
     db.commit()
     db.refresh(task)
     return task
 
 
+#
 def update_task(db: Session, task_id: int, updated: TaskCreate):
     task = get_task(db, task_id)
     task.text = updated.text

@@ -9,7 +9,7 @@ class TaskCreate(BaseModel):
     This is the request body model used when a client creates a new task.
 
     Fields:
-        title: string, required task title
+        text: string, required task title
     """
     text: str
 

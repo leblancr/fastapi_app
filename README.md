@@ -31,35 +31,18 @@ PostgreSQL → TaskDB → Task (response)
 To start frontend:
 cd react
 npm run dev
-or
-cd vue
-npm run dev
 
 State:
-React: tasks + setTasks
-Vue:   tasks.value
-
-React code:
+tasks + setTasks
 const [tasks, setTasks] = useState([])
 const [newTask, setNewTask] = useState('')
 
-Vue equivalent:
-const tasks = ref([])
-const newTask = ref('')
-
-State
-React: useState([])
-Vue:   ref([])
-
 Update list
-React: setTasks(...)
-Vue:   tasks.value = ...
+setTasks(...)
 
 Loop
-React: map()
-Vue:   v-for
+map()
 
 Click
-React: onClick
-Vue:   @click
+onClick
 

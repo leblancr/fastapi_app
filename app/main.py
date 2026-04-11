@@ -28,6 +28,7 @@ def get_db():
     finally:
         db.close()
 
+
 # create task
 @app.post("/tasks", response_model=TaskResponse, status_code=201)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):

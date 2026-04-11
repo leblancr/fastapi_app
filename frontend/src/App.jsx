@@ -13,33 +13,20 @@ function App() {
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState("")
 
-  /* ---------------- REFS ---------------- */
-  const editRef = useRef(null)
-
   /* ---------------- EFFECTS (React lifecycle hooks) ------ */
-  // close edit mode when clicking outside
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (editingId !== null && editRef.current && !editRef.current.contains(e.target)) {
-        setEditingId(null)  // no task is being edited anymore
-        setEditValue("")  // clear the input field
-      }
-    }
-
-    document.addEventListener("mousedown", handleClick)
-    return () => document.removeEventListener("mousedown", handleClick)
-  }, [editingId])
-
   // load tasks once on page load
   useEffect(() => {
     const load = async () => {
       const res = await fetch("http://localhost:8000/tasks")
       const data = await res.json()
       // update task locally after backend save
-      setTasks(data.sort((a, b) => a.id - b.id))
+      setTasks(data.sort((a, b) => a.id - b.id))  // update state, causes UI to re-render with tasks
     }
 
-    load()  //
+    // calls the above function
+    load().catch(err => {
+      console.error(err)
+    })
   }, [])
 
   /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
