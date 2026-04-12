@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 // app component: owns state and data loading
@@ -9,9 +9,13 @@ function App() {
     useRef
     changes → NO re-render
   */
-  const [tasks, setTasks] = useState([])
+  const [activeListId, setActiveListId] = useState(1)
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState("")
+  const [lists, setLists] = useState([
+    { id: 1, name: "Tasks", tasks: [] }
+  ])
+  const [listName, setListName] = useState("")
 
   /* ---------------- EFFECTS (React lifecycle hooks) ------ */
   // load tasks once on page load
@@ -19,8 +23,15 @@ function App() {
     const load = async () => {
       const res = await fetch("http://localhost:8000/tasks")
       const data = await res.json()
+
       // update task locally after backend save
-      setTasks(data.sort((a, b) => a.id - b.id))  // update state, causes UI to re-render with tasks
+      setLists([
+        {
+          id: 1,
+          name: "Tasks",
+          tasks: data.sort((a, b) => a.id - b.id)
+        }
+      ])
     }
 
     // calls the above function
@@ -30,6 +41,21 @@ function App() {
   }, [])
 
   /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
+  const createList = () => {
+    if (!listName) return
+
+    setLists(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        name: listName,
+        tasks: []
+      }
+    ])
+
+    setListName("")
+  }
+
   const createTask = async (text) => {
   const res = await fetch("http://localhost:8000/tasks", {
     method: "POST",
@@ -39,19 +65,32 @@ function App() {
 
   const newTask = await res.json()
 
-  setTasks(prev =>
-    [...prev, newTask].sort((a, b) => a.id - b.id)
-  )
+  setLists(prev =>
+    prev.map(list =>
+      list.id === activeListId
+        ? {
+            ...list,
+            tasks: [...list.tasks, newTask].sort((a, b) => a.id - b.id)
+          }
+        : list
+      )
+    )
 
-  return newTask
-}
+    return newTask
+  }
 
-const deleteTask = async (id) => {
+  const deleteTask = async (id) => {
     await fetch(`http://localhost:8000/tasks/${id}`, {
       method: "DELETE",
     })
 
-    setTasks(prev => prev.filter(t => t.id !== id))
+    setLists(prev =>
+      prev.map(list =>
+        list.id === activeListId
+          ? { ...list, tasks: list.tasks.filter(t => t.id !== id) }
+          : list
+      )
+    )
   }
 
   const toggleTask = async (id) => {
@@ -59,10 +98,19 @@ const deleteTask = async (id) => {
       method: "PATCH",
     })
 
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      ).sort((a, b) => a.id - b.id)
+    setLists(prev =>
+      prev.map(list =>
+        list.id === activeListId
+          ? {
+              ...list,
+              tasks: list.tasks
+                .map(t =>
+                  t.id === id ? { ...t, completed: !t.completed } : t
+                )
+                .sort((a, b) => a.id - b.id)
+            }
+          : list
+      )
     )
   }
 
@@ -71,22 +119,44 @@ const deleteTask = async (id) => {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
-    },
-    setEditingId(null),
-    setEditValue("")
-    )
+    })
 
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === id ? { ...t, text } : t
+    setLists(prev =>
+      prev.map(list =>
+        list.id === activeListId
+          ? {
+              ...list,
+              tasks: list.tasks.map(t =>
+                t.id === id ? { ...t, text } : t
+              )
+            }
+          : list
       )
     )
+
+    setEditingId(null)
+    setEditValue("")
   }
+
+  const activeList = lists.find(l => l.id === activeListId)
 
   /* ---------------- Return (UI) ---------------- */
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
       <h1>Tasks</h1>
+      <div>
+        {lists.map(list => (
+          <button
+            key={list.id}
+            onClick={() => setActiveListId(list.id)}
+            style={{
+              fontWeight: list.id === activeListId ? "bold" : "normal"
+            }}
+          >
+            {list.name}
+          </button>
+        ))}
+      </div>
 
       {/* create task section */}
       <form
@@ -102,9 +172,18 @@ const deleteTask = async (id) => {
         <button type="submit">Add</button>
       </form>
 
+      <div>
+        <input
+          value={listName}
+          onChange={(e) => setListName(e.target.value)}
+          placeholder="New list name"
+        />
+        <button onClick={createList}>Create list</button>
+      </div>
+
       {/* task list section */}
       <ul>
-        {tasks.map(task => (
+        {activeList.tasks.map(task => (
           <TaskItem
             key={task.id}
             task={task}
