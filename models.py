@@ -1,8 +1,15 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from database import Base
 
 
 # models (SQLAlchemy) → database layer
+class List(Base):
+    __tablename__ = "lists"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+
+
 class Task(Base):
     """
     SQLAlchemy ORM model for the tasks table.
@@ -27,4 +34,5 @@ class Task(Base):
 
     completed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)
+    list_id = Column(Integer, ForeignKey("lists.id"))
     text = Column(String, nullable=False)

@@ -11,6 +11,7 @@ class TaskCreate(BaseModel):
     Fields:
         text: string, required task title
     """
+    list_id: int
     text: str
 
 

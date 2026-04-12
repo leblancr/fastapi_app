@@ -18,27 +18,23 @@ function App() {
   const [listName, setListName] = useState("")
 
   /* ---------------- EFFECTS (React lifecycle hooks) ------ */
-  // load tasks once on page load
+  // load tasks for list id
   useEffect(() => {
     const load = async () => {
-      const res = await fetch("http://localhost:8000/tasks")
+      const res = await fetch(`http://localhost:8000/tasks?list_id=${activeListId}`)
       const data = await res.json()
 
-      // update task locally after backend save
-      setLists([
-        {
-          id: 1,
-          name: "Tasks",
-          tasks: data.sort((a, b) => a.id - b.id)
-        }
-      ])
+      setLists(prev =>
+        prev.map(list =>
+          list.id === activeListId
+            ? { ...list, tasks: data.sort((a, b) => a.id - b.id) }
+            : list
+        )
+      )
     }
 
-    // calls the above function
-    load().catch(err => {
-      console.error(err)
-    })
-  }, [])
+    load().catch(console.error)
+  }, [activeListId])
 
   /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
   const createList = () => {
@@ -60,7 +56,7 @@ function App() {
   const res = await fetch("http://localhost:8000/tasks", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, list_id: activeListId }),
   })
 
   const newTask = await res.json()
@@ -79,6 +75,13 @@ function App() {
     return newTask
   }
 
+const deleteList = async (id) => {
+  await fetch(`http://localhost:8000/lists/${id}`, {
+    method: "DELETE",
+  })
+
+  setLists(prev => prev.filter(l => l.id !== id))
+}
   const deleteTask = async (id) => {
     await fetch(`http://localhost:8000/tasks/${id}`, {
       method: "DELETE",
@@ -146,15 +149,15 @@ function App() {
       <h1>Tasks</h1>
       <div>
         {lists.map(list => (
-          <button
-            key={list.id}
-            onClick={() => setActiveListId(list.id)}
-            style={{
-              fontWeight: list.id === activeListId ? "bold" : "normal"
-            }}
-          >
-            {list.name}
-          </button>
+          <div key={list.id}>
+            <button onClick={() => setActiveListId(list.id)}>
+              {list.name}
+            </button>
+
+            <button onClick={() => deleteList(list.id)}>
+              delete
+            </button>
+          </div>
         ))}
       </div>
 

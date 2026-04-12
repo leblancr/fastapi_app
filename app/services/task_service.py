@@ -3,8 +3,10 @@ from schemas import TaskCreate
 from sqlalchemy.orm import Session
 from models import Task
 
-def create_task(db: Session, text: str):
-    task = Task(text=text)
+
+# endpoints
+def create_task(db: Session, text: str, list_id: int):
+    task = Task(text=text, list_id=list_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     db.add(task)
@@ -27,8 +29,8 @@ def get_task(db: Session, task_id: int):
     return task
 
 
-def get_tasks(db: Session):
-    return db.query(Task).all()
+def get_tasks(db: Session, list_id: int):
+    return db.query(Task).filter(Task.list_id == list_id).all()
 
 
 def toggle_task_completed(db: Session, task_id: int):

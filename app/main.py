@@ -4,7 +4,7 @@ from database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
 from schemas import TaskCreate, TaskResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.services import task_service
+from app.services import list_service, task_service
 
 app = FastAPI()
 app.add_middleware(
@@ -29,22 +29,44 @@ def get_db():
         db.close()
 
 
+# API routes
+# create list
+@app.post("/lists")
+def create_list(name: str, db: Session = Depends(get_db)):
+    l = List(name=name)
+    db.add(l)
+    db.commit()
+    db.refresh(l)
+    return l
+
+
 # create task
 @app.post("/tasks", response_model=TaskResponse, status_code=201)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    return task_service.create_task(db, task.text)
+    return task_service.create_task(db, task.text, task.list_id)
 
 
-# delete task
+# delete list
+@app.delete("/lists/{list_id}", status_code=204)
+def delete_list(list_id: int, db: Session = Depends(get_db)):
+    list_service.delete_list(db, list_id)
+
+
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: int, db: Session = Depends(get_db)):
     task_service.delete_task(db, task_id)
 
 
+# get all lists
+@app.get("/lists")
+def get_lists(db: Session = Depends(get_db)):
+    return list_service.get_lists(db)
+
+
 # get all tasks
 @app.get("/tasks", response_model=list[TaskResponse])
-def get_tasks(db: Session = Depends(get_db)):
-    return task_service.get_tasks(db)
+def get_tasks(list_id: int,db: Session = Depends(get_db)):
+    return task_service.get_tasks(db, list_id)
 
 
 # get one task
