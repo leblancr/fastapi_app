@@ -2,11 +2,13 @@
 
 from sqlalchemy.orm import Session
 from models import List
+from database import commit
+
 
 def create_list(db: Session, name: str):
     l = List(name=name)
     db.add(l)
-    db.commit()
+    commit(db)
     db.refresh(l)
     return l
 
@@ -14,7 +16,7 @@ def create_list(db: Session, name: str):
 def delete_list(db: Session, list_id: int):
     l = get_list(db, list_id)
     db.delete(l)
-    db.commit()
+    commit(db)
     return True
 
 

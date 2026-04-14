@@ -5,6 +5,12 @@ from sqlalchemy.orm import Session
 from schemas import TaskCreate, TaskResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.services import list_service, task_service
+from models import List
+from pydantic import BaseModel
+
+
+class ListUpdate(BaseModel):
+    name: str
 
 app = FastAPI()
 app.add_middleware(
@@ -14,6 +20,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # client wants to get
 @app.get("/")
@@ -79,6 +86,16 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
 @app.patch("/tasks/{task_id}/toggle", response_model=TaskResponse)
 def toggle_task_completed(task_id: int, db: Session = Depends(get_db)):
     return task_service.toggle_task_completed(db, task_id)
+
+
+# edit lists
+@app.put("/lists/{list_id}")
+def update_list(list_id: int, updated: ListUpdate, db: Session = Depends(get_db)):
+    lst = db.query(List).filter(List.id == list_id).first()
+    lst.name = updated.name
+    db.commit()
+    db.refresh(lst)
+    return lst
 
 
 # edit task

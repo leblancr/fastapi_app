@@ -11,3 +11,12 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 Base = declarative_base()
+
+from sqlalchemy.orm import Session
+
+def commit(db: Session):
+    try:
+        db.commit()
+    except:
+        db.rollback()
+        raise

@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from schemas import TaskCreate
 from sqlalchemy.orm import Session
 from models import Task
+from database import commit
 
 
 # endpoints
@@ -10,7 +11,7 @@ def create_task(db: Session, text: str, list_id: int):
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     db.add(task)
-    db.commit()
+    commit(db)
     db.refresh(task)
     return task
 
@@ -18,7 +19,7 @@ def create_task(db: Session, text: str, list_id: int):
 def delete_task(db: Session, task_id: int):
     task = get_task(db, task_id)
     db.delete(task)
-    db.commit()
+    commit(db)
     return True
 
 
@@ -36,7 +37,7 @@ def get_tasks(db: Session, list_id: int):
 def toggle_task_completed(db: Session, task_id: int):
     task = get_task(db, task_id)
     task.completed = not task.completed
-    db.commit()
+    commit(db)
     db.refresh(task)
     return task
 
@@ -45,6 +46,6 @@ def toggle_task_completed(db: Session, task_id: int):
 def update_task(db: Session, task_id: int, updated: TaskCreate):
     task = get_task(db, task_id)
     task.text = updated.text
-    db.commit()
+    commit(db)
     db.refresh(task)
     return task
