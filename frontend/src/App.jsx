@@ -234,21 +234,51 @@ const deleteList = async (id) => {
 }
 
 // list item component: renders a single list row
-function ListItem({ list, setActiveListId, deleteList }) {
+function ListItem({
+  list,
+  setActiveListId,
+  deleteList,
+  editingListId,
+  editingListValue,
+  setEditingListId,
+  setEditingListValue,
+  updateList
+}) {
   return (
     <li className="row">
-      <span onClick={() => setActiveListId(list.id)}>
-        {list.name}
-      </span>
+
+      {editingListId === list.id ? (
+        <input
+          value={editingListValue}
+          onChange={(e) => setEditingListValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              updateList(list.id, editingListValue)
+            }
+          }}
+        />
+      ) : (
+        <span onClick={() => setActiveListId(list.id)}>
+          {list.name}
+        </span>
+      )}
 
       <div className="actions">
-        <button>edit</button>
-        <button onClick={() => deleteList(list.id)}>delete</button>
+        <button onClick={() => {
+          setEditingListId(list.id)
+          setEditingListValue(list.name)
+        }}>
+          edit
+        </button>
+
+        <button onClick={() => deleteList(list.id)}>
+          delete
+        </button>
       </div>
+
     </li>
   )
 }
-
 
 // task item component: renders a single task row
 function TaskItem({
