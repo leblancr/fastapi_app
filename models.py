@@ -10,9 +10,9 @@ class List(Base):
     name = Column(String, nullable=False)
 
 
-class Task(Base):
+class Item(Base):
     """
-    SQLAlchemy ORM model for the tasks table.
+    SQLAlchemy ORM model for the items table.
 
     Database mapping:
         This is the actual table structure tied to the database.
@@ -30,7 +30,7 @@ class Task(Base):
 
         this is what gets persisted to Postgres
     """
-    __tablename__ = "tasks"
+    __tablename__ = "items"
 
     completed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)

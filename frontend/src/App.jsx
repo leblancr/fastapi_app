@@ -10,17 +10,16 @@ function App() {
     changes → NO re-render
   */
   const [activeListId, setActiveListId] = useState(null)
-  const [hoveredListId, setHoveredListId] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState("")
   const [editingListId, setEditingListId] = useState(null)
   const [editingListValue, setEditingListValue] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [lists, setLists] = useState([])
-  const [tasks, setTasks] = useState([])
+  const [items, setItems] = useState([])
   const [listName, setListName] = useState("")
   const activeListName = lists.find(l => l.id === activeListId)?.name
-
+  const [sidebarWidth, setSidebarWidth] = useState(200)
 
   /* ---------------- EFFECTS (React lifecycle hooks) ------ */
   // Load lists (ONLY ids + names)
@@ -41,20 +40,20 @@ function App() {
     load().catch(console.error)
   }, [])
 
-  // Load tasks (ONLY for active list)
+  // Load items (ONLY for active list)
   useEffect(() => {
     if (!activeListId) return
 
-    const loadTasks = async () => {
+    const loadItems = async () => {
       const res = await fetch(
-        `http://localhost:8000/tasks?list_id=${activeListId}`
+        `http://localhost:8000/items?list_id=${activeListId}`
       )
       const data = await res.json()
 
-      setTasks(data)
+      setItems(data)
     }
 
-    loadTasks().catch(console.error)
+    loadItems().catch(console.error)
   }, [activeListId])
 
   useEffect(() => {
@@ -77,16 +76,16 @@ function App() {
     setListName("")
   }
 
-  // Create task (append only tasks)
-  const createTask = async (text) => {
-    const res = await fetch("http://localhost:8000/tasks", {
+  // Create item (append only items)
+  const createItem = async (text) => {
+    const res = await fetch("http://localhost:8000/items", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, list_id: activeListId }),
     })
 
-    const newTask = await res.json()
-    setTasks(prev => [...prev, newTask])
+    const newItem = await res.json()
+    setitems(prev => [...prev, newItem])
   }
 
 const deleteList = async (id) => {
@@ -96,24 +95,42 @@ const deleteList = async (id) => {
 
   setLists(prev => prev.filter(l => l.id !== id))
 }
-  const deleteTask = async (id) => {
-    await fetch(`http://localhost:8000/tasks/${id}`, {
+  const deleteItem = async (id) => {
+    await fetch(`http://localhost:8000/items/${id}`, {
       method: "DELETE",
     })
 
-    setTasks(prev => prev.filter(t => t.id !== id))
+    setItems(prev => prev.filter(t => t.id !== id))
   }
 
-  const toggleTask = async (id) => {
-    await fetch(`http://localhost:8000/tasks/${id}/toggle`, {
+  const toggleItem = async (id) => {
+    await fetch(`http://localhost:8000/items/${id}/toggle`, {
       method: "PATCH",
     })
 
-    setTasks(prev =>
+    setItems(prev =>
       prev.map(t =>
         t.id === id ? { ...t, completed: !t.completed } : t
       )
     )
+  }
+
+  const startResize = (e) => {
+    const startX = e.clientX
+    const startWidth = sidebarWidth
+
+    const onMove = (ev) => {
+      const next = startWidth + (ev.clientX - startX)
+      setSidebarWidth(Math.max(160, Math.min(400, next)))
+    }
+
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
   }
 
   const updateList = async (id, name) => {
@@ -133,14 +150,14 @@ const deleteList = async (id) => {
     setEditingListValue("")
   }
 
-  const updateTask = async (id, text) => {
-    await fetch(`http://localhost:8000/tasks/${id}`, {
+  const updateItem = async (id, text) => {
+    await fetch(`http://localhost:8000/items/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     })
 
-    setTasks(prev =>
+    setItems(prev =>
       prev.map(t =>
         t.id === id ? { ...t, text } : t
       )
@@ -152,89 +169,91 @@ const deleteList = async (id) => {
 
   /* ---------------- Return (UI) ---------------- */
   return (
-    <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-    <h1>Lists</h1>
-      <div style={{ width: "100%" }}>
-        {/* Render lists (buttons) */}
+    <div className="app">
+
+      {/* LEFT: lists */}
+      <div className="sidebar" style={{ width: sidebarWidth }}>
+        <h1>Lists</h1>
         <ul>
           {lists.map(list => (
-            <ListItem
+            <List
               key={list.id}
               list={list}
-              activeListId={activeListId}
               setActiveListId={setActiveListId}
-              hoveredListId={hoveredListId}
-              setHoveredListId={setHoveredListId}
               deleteList={deleteList}
               editingListId={editingListId}
-              setEditingListId={setEditingListId}
               editingListValue={editingListValue}
+              setEditingListId={setEditingListId}
               setEditingListValue={setEditingListValue}
               updateList={updateList}
             />
           ))}
 
           <div className="row no-hover">
-            <button onClick={() => setIsOpen(true)}>New List (modal)</button>
+            <button onClick={() => setIsOpen(true)}>New List</button>
           </div>
         </ul>
       </div>
 
-      <div className="divider" />
+     <div
+       className="resizer"
+       onMouseDown={startResize}
+     />
 
+      {/* RIGHT: items */}
+      <div className="content">
       <h2>{activeListName}</h2>
-
-      {/* task list section */}
       <ul>
-        {tasks.map(task => (
-          <TaskItem
-            key={task.id}
-            task={task}
+        {items.map(item => (
+          <Item
+            key={item.id}
+            item={item}
             editingId={editingId}
             editValue={editValue}
             setEditingId={setEditingId}
             setEditValue={setEditValue}
-            updateTask={updateTask}
-            toggleTask={toggleTask}
-            deleteTask={deleteTask}
+            updateItem={updateItem}
+            toggleItem={toggleItem}
+            deleteItem={deleteItem}
           />
-          ))}
+        ))}
       </ul>
+    </div>
 
-      {/* create list section */}
-      {isOpen && (
-        <div className="overlay" onClick={() => setIsOpen(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+    {/* create list section */}
+    {isOpen && (
+      <div className="overlay" onClick={() => setIsOpen(false)}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
 
-            <h3>New List</h3>
+          <h3>New List</h3>
 
-            <input
-              value={listName}
-              onChange={(e) => setListName(e.target.value)}
-              placeholder="List name"
-            />
+          <input
+            value={listName}
+            onChange={(e) => setListName(e.target.value)}
+            placeholder="List name"
+          />
 
-          <div className="modal-actions">
-            <button onClick={() => setIsOpen(false)}>Cancel</button>
-              <button
-                onClick={() => {
-                  createList()
-                  setIsOpen(false)
-                }}
-              >
-                OK
-              </button>
-            </div>
-
+        <div className="modal-actions">
+          <button onClick={() => setIsOpen(false)}>Cancel</button>
+            <button
+              onClick={() => {
+                createList()
+                setIsOpen(false)
+              }}
+            >
+              OK
+            </button>
           </div>
+
         </div>
-      )}
+      </div>
+    )}
     </div>
   )
 }
 
-// list item component: renders a single list row
-function ListItem({
+// list item component: renders a list of lists
+function List({
   list,
   setActiveListId,
   deleteList,
@@ -258,7 +277,7 @@ function ListItem({
           }}
         />
       ) : (
-        <span onClick={() => setActiveListId(list.id)}>
+        <span className="list-name" onClick={() => setActiveListId(list.id)}>
           {list.name}
         </span>
       )}
@@ -280,49 +299,49 @@ function ListItem({
   )
 }
 
-// task item component: renders a single task row
-function TaskItem({
-  task,
+// item component: renders a single list row
+function Item({
+  item,
   editingId,
   editValue,
   setEditingId,
   setEditValue,
-  updateTask,
-  toggleTask,
-  deleteTask,
+  updateItem,
+  toggleItem,
+  deleteItem,
   editRef
 }) {
   return (
     <li className="row">
-      {editingId === task.id ? (
+      {editingId === item.id ? (
         <div ref={editRef}>
           <input
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
           />
-          <button onClick={() => updateTask(task.id, editValue)}>
+          <button onClick={() => updateItem(item.id, editValue)}>
             save
           </button>
         </div>
       ) : (
         <>
-          <span style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
-            {task.text}
+          <span className="item-text" style={{ textDecoration: item.completed ? 'line-through' : 'none' }}>
+            {item.text}
           </span>
 
           <div className="actions">
             <button onClick={() => {
-              setEditingId(task.id)
-              setEditValue(task.text)
+              setEditingId(item.id)
+              setEditValue(item.text)
             }}>
               edit
             </button>
 
-            <button onClick={() => toggleTask(task.id)}>
+            <button onClick={() => toggleItem(item.id)}>
               toggle
             </button>
 
-            <button onClick={() => deleteTask(task.id)}>
+            <button onClick={() => deleteItem(item.id)}>
               delete
             </button>
           </div>

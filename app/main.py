@@ -2,9 +2,9 @@ from fastapi import Depends
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
-from schemas import TaskCreate, TaskResponse
+from schemas import ItemCreate, ItemResponse
 from fastapi.middleware.cors import CORSMiddleware
-from app.services import list_service, task_service
+from app.services import list_service, item_service
 from models import List
 from pydantic import BaseModel
 
@@ -47,10 +47,10 @@ def create_list(name: str, db: Session = Depends(get_db)):
     return l
 
 
-# create task
-@app.post("/tasks", response_model=TaskResponse, status_code=201)
-def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    return task_service.create_task(db, task.text, task.list_id)
+# create item
+@app.post("/items", response_model=ItemResponse, status_code=201)
+def create_item(item: ItemCreate, db: Session = Depends(get_db)):
+    return item_service.create_item(db, item.text, item.list_id)
 
 
 # delete list
@@ -59,9 +59,9 @@ def delete_list(list_id: int, db: Session = Depends(get_db)):
     list_service.delete_list(db, list_id)
 
 
-@app.delete("/tasks/{task_id}", status_code=204)
-def delete_task(task_id: int, db: Session = Depends(get_db)):
-    task_service.delete_task(db, task_id)
+@app.delete("/items/{item_id}", status_code=204)
+def delete_item(item_id: int, db: Session = Depends(get_db)):
+    item_service.delete_item(db, item_id)
 
 
 # get all lists
@@ -70,22 +70,22 @@ def get_lists(db: Session = Depends(get_db)):
     return list_service.get_lists(db)
 
 
-# get all tasks
-@app.get("/tasks", response_model=list[TaskResponse])
-def get_tasks(list_id: int,db: Session = Depends(get_db)):
-    return task_service.get_tasks(db, list_id)
+# get all items
+@app.get("/items", response_model=list[ItemResponse])
+def get_items(list_id: int,db: Session = Depends(get_db)):
+    return item_service.get_items(db, list_id)
 
 
-# get one task
-@app.get("/tasks/{task_id}", response_model=TaskResponse)
-def get_task(task_id: int, db: Session = Depends(get_db)):
-    return task_service.get_task(db, task_id)
+# get one item
+@app.get("/items/{item_id}", response_model=ItemResponse)
+def get_item(item_id: int, db: Session = Depends(get_db)):
+    return item_service.get_item(db, item_id)
 
 
-# toggle task complete
-@app.patch("/tasks/{task_id}/toggle", response_model=TaskResponse)
-def toggle_task_completed(task_id: int, db: Session = Depends(get_db)):
-    return task_service.toggle_task_completed(db, task_id)
+# toggle item complete
+@app.patch("/items/{item_id}/toggle", response_model=ItemResponse)
+def toggle_item_completed(item_id: int, db: Session = Depends(get_db)):
+    return item_service.toggle_item_completed(db, item_id)
 
 
 # edit lists
@@ -98,8 +98,8 @@ def update_list(list_id: int, updated: ListUpdate, db: Session = Depends(get_db)
     return lst
 
 
-# edit task
-@app.put("/tasks/{task_id}", response_model=TaskResponse)
-def update_task(task_id: int, updated_task: TaskCreate, db: Session = Depends(get_db)):
-    return task_service.update_task(db, task_id, updated_task)
+# edit item
+@app.put("/items/{item_id}", response_model=ItemResponse)
+def update_item(item_id: int, updated_item: ItemCreate, db: Session = Depends(get_db)):
+    return item_service.update_item(db, item_id, updated_item)
 
