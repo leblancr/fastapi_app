@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 from schemas import ItemCreate, ItemResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.services import list_service, item_service
-from models import List
+from models import ItemList
 from pydantic import BaseModel
+from typing import List
 
 
 class ListUpdate(BaseModel):
@@ -38,7 +39,7 @@ def get_db():
 
 # API routes
 # create list
-@app.post("/lists")
+@app.post("/item_lists")
 def create_list(name: str, db: Session = Depends(get_db)):
     l = List(name=name)
     db.add(l)
@@ -54,9 +55,9 @@ def create_item(item: ItemCreate, db: Session = Depends(get_db)):
 
 
 # delete list
-@app.delete("/lists/{list_id}", status_code=204)
-def delete_list(list_id: int, db: Session = Depends(get_db)):
-    list_service.delete_list(db, list_id)
+@app.delete("/item_lists/{item_list_id}", status_code=204)
+def delete_item_list(item_list_id: int, db: Session = Depends(get_db)):
+    list_service.delete_item_list(db, item_list_id)
 
 
 @app.delete("/items/{item_id}", status_code=204)
@@ -64,14 +65,14 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     item_service.delete_item(db, item_id)
 
 
-# get all lists
+# get all item_lists
 @app.get("/lists")
 def get_lists(db: Session = Depends(get_db)):
     return list_service.get_lists(db)
 
 
 # get all items
-@app.get("/items", response_model=list[ItemResponse])
+@app.get("/items", response_model=List[ItemResponse])
 def get_items(list_id: int,db: Session = Depends(get_db)):
     return item_service.get_items(db, list_id)
 
@@ -88,10 +89,10 @@ def toggle_item_completed(item_id: int, db: Session = Depends(get_db)):
     return item_service.toggle_item_completed(db, item_id)
 
 
-# edit lists
-@app.put("/lists/{list_id}")
-def update_list(list_id: int, updated: ListUpdate, db: Session = Depends(get_db)):
-    lst = db.query(List).filter(List.id == list_id).first()
+# edit item_lists
+@app.put("/item_lists/{item_list_id}")
+def update_item_list(item_list_id: int, updated: ListUpdate, db: Session = Depends(get_db)):
+    lst = db.query(List).filter(List.id == item_list_id).first()
     lst.name = updated.name
     db.commit()
     db.refresh(lst)

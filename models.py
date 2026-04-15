@@ -3,7 +3,7 @@ from database import Base
 
 
 # models (SQLAlchemy) → database layer
-class List(Base):
+class ItemList(Base):
     __tablename__ = "lists"
 
     id = Column(Integer, primary_key=True)
