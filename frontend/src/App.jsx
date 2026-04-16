@@ -325,7 +325,7 @@ function Item({
         </div>
       ) : (
         <>
-          <span className="item-text" style={{ textDecoration: item.completed ? 'line-through' : 'none' }}>
+          <span style={{ textDecoration: item.completed ? 'line-through' : 'none' }}>
             {item.text}
           </span>
 
