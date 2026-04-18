@@ -15,9 +15,11 @@ function App() {
   const [editingListId, setEditingListId] = useState(null)
   const [editingListValue, setEditingListValue] = useState("")
   const [isOpen, setIsOpen] = useState(false)
+  const [isItemOpen, setIsItemOpen] = useState(false)
   const [lists, setLists] = useState([])
   const [items, setItems] = useState([])
   const [listName, setListName] = useState("")
+  const [newItemText, setNewItemText] = useState("")
   const activeListName = lists.find(l => l.id === activeListId)?.name
   const [sidebarWidth, setSidebarWidth] = useState(200)
 
@@ -85,7 +87,7 @@ function App() {
     })
 
     const newItem = await res.json()
-    setitems(prev => [...prev, newItem])
+    setItems(prev => [...prev, newItem])
   }
 
 const deleteList = async (id) => {
@@ -173,7 +175,12 @@ const deleteList = async (id) => {
 
       {/* LEFT: lists */}
       <div className="sidebar" style={{ width: sidebarWidth }}>
-        <h1>Lists</h1>
+        <h2>Lists</h2>
+
+        <div className="new-list-btn" >
+          <button onClick={() => setIsOpen(true)}>New List</button>
+        </div>
+
         <ul>
           {lists.map(list => (
             <List
@@ -188,166 +195,208 @@ const deleteList = async (id) => {
               updateList={updateList}
             />
           ))}
-
-          <div className="row no-hover">
-            <button onClick={() => setIsOpen(true)}>New List</button>
-          </div>
         </ul>
       </div>
 
-     <div
-       className="resizer"
-       onMouseDown={startResize}
-     />
+      <div
+        className="resizer"
+        onMouseDown={startResize}
+      />
 
       {/* RIGHT: items */}
       <div className="content">
       <h2>{activeListName}</h2>
-      <ul>
-        {items.map(item => (
-          <Item
-            key={item.id}
-            item={item}
-            editingId={editingId}
-            editValue={editValue}
-            setEditingId={setEditingId}
-            setEditValue={setEditValue}
-            updateItem={updateItem}
-            toggleItem={toggleItem}
-            deleteItem={deleteItem}
-          />
-        ))}
-      </ul>
-    </div>
-
-    {/* create list section */}
-    {isOpen && (
-      <div className="overlay" onClick={() => setIsOpen(false)}>
-        <div className="modal" onClick={(e) => e.stopPropagation()}>
-
-          <h3>New List</h3>
-
-          <input
-            value={listName}
-            onChange={(e) => setListName(e.target.value)}
-            placeholder="List name"
-          />
-
-        <div className="modal-actions">
-          <button onClick={() => setIsOpen(false)}>Cancel</button>
-            <button
-              onClick={() => {
-                createList()
-                setIsOpen(false)
-              }}
-            >
-              OK
-            </button>
-          </div>
-
-        </div>
-      </div>
-    )}
-    </div>
-  )
-}
-
-// list item component: renders a list of lists
-function List({
-  list,
-  setActiveListId,
-  deleteList,
-  editingListId,
-  editingListValue,
-  setEditingListId,
-  setEditingListValue,
-  updateList
-}) {
-  return (
-    <li className="row">
-
-      {editingListId === list.id ? (
-        <input
-          value={editingListValue}
-          onChange={(e) => setEditingListValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              updateList(list.id, editingListValue)
-            }
-          }}
-        />
-      ) : (
-        <span className="list-name" onClick={() => setActiveListId(list.id)}>
-          {list.name}
-        </span>
-      )}
-
-      <div className="actions">
-        <button onClick={() => {
-          setEditingListId(list.id)
-          setEditingListValue(list.name)
-        }}>
-          edit
-        </button>
-
-        <button onClick={() => deleteList(list.id)}>
-          delete
-        </button>
-      </div>
-
-    </li>
-  )
-}
-
-// item component: renders a single list row
-function Item({
-  item,
-  editingId,
-  editValue,
-  setEditingId,
-  setEditValue,
-  updateItem,
-  toggleItem,
-  deleteItem,
-  editRef
-}) {
-  return (
-    <li className="row">
-      {editingId === item.id ? (
-        <div ref={editRef}>
-          <input
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-          />
-          <button onClick={() => updateItem(item.id, editValue)}>
-            save
+        {/* create item section */}
+        <div className="add-item">
+          <button onClick={() => setIsItemOpen(true)}>
+            New Item
           </button>
         </div>
+          <ul>
+            {items.map(item => (
+              <Item
+                key={item.id}
+                item={item}
+                editingId={editingId}
+                editValue={editValue}
+                setEditingId={setEditingId}
+                setEditValue={setEditValue}
+                updateItem={updateItem}
+                toggleItem={toggleItem}
+                deleteItem={deleteItem}
+              />
+            ))}
+          </ul>
+        </div>
+
+      {/* create list section */}
+      {isOpen && (
+        <div className="overlay" onClick={() => setIsOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+
+            <h3>New List</h3>
+
+            <input
+              value={listName}
+              onChange={(e) => setListName(e.target.value)}
+              placeholder="List name"
+            />
+
+          <div className="modal-actions">
+            <button onClick={() => setIsOpen(false)}>Cancel</button>
+              <button
+                onClick={() => {
+                  createList()
+                  setIsOpen(false)
+                }}
+              >
+                OK
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {isItemOpen && (
+        <div className="overlay" onClick={() => setIsItemOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+
+            <h3>New Item</h3>
+
+            <input
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              placeholder="Item text"
+            />
+
+            <div className="modal-actions">
+              <button onClick={() => setIsItemOpen(false)}>
+                Cancel
+              </button>
+
+              <button
+                onClick={() => {
+                  if (!newItemText.trim()) return
+                  createItem(newItemText)
+                  setNewItemText("")
+                  setIsItemOpen(false)
+                }}
+              >
+                OK
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// shared component: view mode, edit mode,save
+function EditableRow({
+  isEditing,
+  value,
+  onChange,
+  onEdit,
+  onSave,
+  onDelete,
+  children,
+}) {
+  return (
+    <li className="row">
+      {isEditing ? (
+        <>
+          <input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <button onClick={onSave}>save</button>
+        </>
       ) : (
         <>
-          <span style={{ textDecoration: item.completed ? 'line-through' : 'none' }}>
-            {item.text}
-          </span>
+          {children}
 
           <div className="actions">
-            <button onClick={() => {
-              setEditingId(item.id)
-              setEditValue(item.text)
-            }}>
-              edit
-            </button>
-
-            <button onClick={() => toggleItem(item.id)}>
-              toggle
-            </button>
-
-            <button onClick={() => deleteItem(item.id)}>
-              delete
-            </button>
+            <button onClick={onEdit}>edit</button>
+            <button onClick={onDelete}>delete</button>
           </div>
         </>
       )}
     </li>
+  )
+}
+
+// list item component: renders a list of lists
+function List(props) {
+  const {
+    list,
+    editingListId,
+    editingListValue,
+    setEditingListId,
+    setEditingListValue,
+    updateList,
+    deleteList,
+    setActiveListId,
+  } = props
+
+  return (
+    <EditableRow
+      isEditing={editingListId === list.id}
+      value={editingListValue}
+      onChange={setEditingListValue}
+      onEdit={() => {
+        setEditingListId(list.id)
+        setEditingListValue(list.name)
+      }}
+      onSave={() => updateList(list.id, editingListValue)}
+      onDelete={() => deleteList(list.id)}
+    >
+      <span
+        className="list-name"
+        onClick={() => setActiveListId(list.id)}
+      >
+        {list.name}
+      </span>
+    </EditableRow>
+  )
+}
+
+// item component: renders a single list row
+function Item(props) {
+  const {
+    item,
+    editingId,
+    editValue,
+    setEditingId,
+    setEditValue,
+    updateItem,
+    deleteItem,
+    toggleItem,
+  } = props
+
+  return (
+    <EditableRow
+      isEditing={editingId === item.id}
+      value={editValue}
+      onChange={setEditValue}
+      onEdit={() => {
+        setEditingId(item.id)
+        setEditValue(item.text)
+      }}
+      onSave={() => updateItem(item.id, editValue)}
+      onDelete={() => deleteItem(item.id)}
+    >
+      <span
+        onClick={() => toggleItem(item.id)}
+        style={{
+          textDecoration: item.completed ? 'line-through' : 'none'
+        }}
+      >
+        {item.text}
+      </span>
+    </EditableRow>
   )
 }
 
