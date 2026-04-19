@@ -33,6 +33,8 @@ function App() {
       const res = await fetch("http://localhost:8000/item_lists")
       const data = await res.json()
 
+      console.log("lists response:", data)
+
       setLists(data)
 
       if (data.length > 0) {
@@ -144,6 +146,23 @@ function App() {
     window.addEventListener('mouseup', onUp)
   }
 
+  const updateItem = async (id, text, color) => {
+    await fetch(`http://localhost:8000/items/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, color: color ?? "#666" }),
+    })
+
+    setItems(prev =>
+      prev.map(t =>
+        t.id === id ? { ...t, text, color } : t
+      )
+    )
+
+    setEditingId(null)
+    setEditValue("")
+  }
+
   const updateList = async (id, name, color) => {
     await fetch(`http://localhost:8000/item_lists/${id}`, {
       method: "PUT",
@@ -153,29 +172,12 @@ function App() {
 
     setLists(prev =>
       prev.map(l =>
-        l.id === id ? { ...l, name } : l
+        l.id === id ? { ...l, name, color } : l
       )
     )
 
     setEditingListId(null)
     setEditingListValue("")
-  }
-
-  const updateItem = async (id, text) => {
-    await fetch(`http://localhost:8000/items/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    })
-
-    setItems(prev =>
-      prev.map(t =>
-        t.id === id ? { ...t, text } : t
-      )
-    )
-
-    setEditingId(null)
-    setEditValue("")
   }
 
   /* ---------------- Return (UI) ---------------- */
@@ -228,8 +230,10 @@ function App() {
               <Item
                 key={item.id}
                 item={item}
+                editingColor={editingColor}
                 editingId={editingId}
                 editValue={editValue}
+                setEditingColor={setEditingColor}
                 setEditingId={setEditingId}
                 setEditValue={setEditValue}
                 updateItem={updateItem}
@@ -324,13 +328,12 @@ function EditableRow({
   isEditing,
   value,
   onChange,
+  onColorChange,
   onEdit,
   onSave,
   onDelete,
   children,
-  editingColor,
-  setEditingColor,
-}) {
+  }) {
   return (
     <li
       className="row"
@@ -344,8 +347,8 @@ function EditableRow({
 
           <input
             type="color"
-            value={editingColor}
-            onChange={(e) => setEditingColor(e.target.value)}
+            value={color}
+            onChange={(e) => onColorChange(e.target.value)}
           />
 
           <button onClick={onSave}>save</button>
@@ -364,46 +367,6 @@ function EditableRow({
   )
 }
 
-// list item component: renders a list of lists
-function ItemList(props) {
-  const {
-    list,
-    editingColor,
-    editingListId,
-    editingListValue,
-    setEditingListId,
-    setEditingListValue,
-    updateList,
-    deleteList,
-    setActiveListId,
-    setEditingColor,
-  } = props
-
-  return (
-    <EditableRow
-      color={list.color}
-      isEditing={editingListId === list.id}
-      value={editingListValue}
-      onChange={setEditingListValue}
-      onEdit={() => {
-        setEditingListId(list.id)
-        setEditingListValue(list.name)
-        setEditingColor(list.color)
-      }}
-      onSave={() => updateList(list.id, editingListValue, editingColor)}
-      onDelete={() => deleteList(list.id)}
-      setEditingColor={setEditingColor}
-    >
-    <span
-      className="list-name"
-      onClick={() => setActiveListId(list.id)}
-    >
-      {list.name}
-    </span>
-  </EditableRow>
-  )
-}
-
 // item component: renders a single list row
 function Item(props) {
   const {
@@ -417,17 +380,20 @@ function Item(props) {
     toggleItem,
   } = props
 
+  const [localColor, setLocalColor] = useState(item.color)
+
   return (
     <EditableRow
-      color={item.color}
+      color={localColor}
       isEditing={editingId === item.id}
       value={editValue}
       onChange={setEditValue}
+      onColorChange={setLocalColor}
       onEdit={() => {
         setEditingId(item.id)
         setEditValue(item.text)
       }}
-      onSave={() => updateItem(item.id, editValue)}
+      onSave={() => updateItem(item.id, editValue, localColor, item.completed)}
       onDelete={() => deleteItem(item.id)}
     >
       <span
@@ -439,6 +405,46 @@ function Item(props) {
         {item.text}
       </span>
     </EditableRow>
+  )
+}
+
+// list item component: renders a list of lists
+function ItemList(props) {
+  const {
+    list,
+    editingListId,
+    editingListValue,
+    setEditingListId,
+    setEditingListValue,
+    updateList,
+    deleteList,
+    setActiveListId,
+    setEditingColor,
+    setNewListColor
+  } = props
+
+  console.log("setEditingColor is:", setEditingColor)
+
+  return (
+    <EditableRow
+      color={list.color}
+      isEditing={editingListId === list.id}
+      value={editingListValue}
+      onChange={(e) => setNewListColor(e.target.value)}
+      onEdit={() => {
+        setEditingListId(list.id)
+        setEditingListValue(list.name)
+      }}
+      onSave={() => updateList(list.id, editingListValue, list.color)}
+      onDelete={() => deleteList(list.id)}
+    >
+    <span
+      className="list-name"
+      onClick={() => setActiveListId(list.id)}
+    >
+      {list.name}
+    </span>
+  </EditableRow>
   )
 }
 

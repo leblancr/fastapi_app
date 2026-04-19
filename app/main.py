@@ -2,13 +2,13 @@ from fastapi import Depends
 from fastapi import FastAPI, HTTPException
 from database import SessionLocal, engine, Base
 from sqlalchemy.orm import Session
-from schemas import ItemCreate, ItemResponse
+from schemas import ItemCreate, ItemResponse, ListResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.services import list_service, item_service
 from pydantic import BaseModel
 from typing import List
 from models import ItemList
-from schemas import ListUpdate
+from schemas import ListUpdate, ItemUpdate
 
 
 class ListCreate(BaseModel):
@@ -55,7 +55,7 @@ def create_list(data: ListCreate, db: Session = Depends(get_db)):
 # create item
 @app.post("/items", response_model=ItemResponse, status_code=201)
 def create_item(item: ItemCreate, db: Session = Depends(get_db)):
-    return item_service.create_item(db, item.text, item.list_id)
+    return item_service.create_item(db, item.text, item.list_id, item.color)
 
 
 # delete list
@@ -70,7 +70,7 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
 
 
 # get all item_lists
-@app.get("/lists")
+@app.get("/item_lists", response_model=list[ListResponse])
 def get_lists(db: Session = Depends(get_db)):
     return list_service.get_lists(db)
 
@@ -93,8 +93,14 @@ def toggle_item_completed(item_id: int, db: Session = Depends(get_db)):
     return item_service.toggle_item_completed(db, item_id)
 
 
+# edit item
+@app.put("/items/{item_id}", response_model=ItemResponse)
+def update_item(item_id: int, updated_item: ItemUpdate, db: Session = Depends(get_db)):
+    return item_service.update_item(db, item_id, updated_item)
+
+
 # edit item_lists
-@app.put("/item_lists/{item_list_id}")
+@app.put("/item_lists/{item_list_id}", response_model=ListResponse)
 def update_item_list(
     item_list_id: int,  # which row to update
     updated: ListUpdate,  # new values sent from frontend
@@ -110,10 +116,4 @@ def update_item_list(
     db.commit()
     db.refresh(lst)
     return lst
-
-
-# edit item
-@app.put("/items/{item_id}", response_model=ItemResponse)
-def update_item(item_id: int, updated_item: ItemCreate, db: Session = Depends(get_db)):
-    return item_service.update_item(db, item_id, updated_item)
 

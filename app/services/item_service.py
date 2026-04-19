@@ -1,13 +1,13 @@
 from fastapi import HTTPException
-from schemas import ItemCreate
+from schemas import ItemUpdate
 from sqlalchemy.orm import Session
 from models import Item
 from database import commit
 
 
 # endpoints
-def create_item(db: Session, text: str, list_id: int):
-    item = Item(text=text, list_id=list_id)
+def create_item(db: Session, text: str, list_id: int, color="#666"):
+    item = Item(color=color, text=text, list_id=list_id)
     if not item:
         raise HTTPException(status_code=404, detail="item not found")
     db.add(item)
@@ -36,6 +36,10 @@ def get_items(db: Session, list_id: int):
 
 def toggle_item_completed(db: Session, item_id: int):
     item = get_item(db, item_id)
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
     item.completed = not item.completed
     commit(db)
     db.refresh(item)
@@ -43,9 +47,13 @@ def toggle_item_completed(db: Session, item_id: int):
 
 
 #
-def update_item(db: Session, item_id: int, updated: ItemCreate):
+def update_item(db: Session, item_id: int, updated: ItemUpdate):
     item = get_item(db, item_id)
+    print("ITEM MODEL ATTRS:", dir(item))
+    # update_item.py
     item.text = updated.text
+    item.color = updated.color or "#666"  # to stop null values into db
+
     commit(db)
     db.refresh(item)
     return item

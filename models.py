@@ -36,5 +36,5 @@ class Item(Base):
     color = Column(String, default="#666")
     completed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)
-    list_id = Column(Integer, ForeignKey("lists.id"))
+    list_id = Column(Integer, ForeignKey("item_lists.id"))
     text = Column(String, nullable=False)
