@@ -10,6 +10,7 @@ function App() {
     changes → NO re-render
   */
   const [activeListId, setActiveListId] = useState(null)
+  const [editingColor, setEditingColor] = useState("#666")
   const [editingId, setEditingId] = useState(null)
   const [editValue, setEditValue] = useState("")
   const [editingListId, setEditingListId] = useState(null)
@@ -19,7 +20,9 @@ function App() {
   const [lists, setLists] = useState([])
   const [items, setItems] = useState([])
   const [listName, setListName] = useState("")
+  const [newItemColor, setNewItemColor] = useState("#666")
   const [newItemText, setNewItemText] = useState("")
+  const [newListColor, setNewListColor] = useState("#666")
   const activeListName = lists.find(l => l.id === activeListId)?.name
   const [sidebarWidth, setSidebarWidth] = useState(200)
 
@@ -27,7 +30,7 @@ function App() {
   // Load lists (ONLY ids + names)
   useEffect(() => {
     const load = async () => {
-      const res = await fetch("http://localhost:8000/lists")
+      const res = await fetch("http://localhost:8000/item_lists")
       const data = await res.json()
 
       setLists(data)
@@ -59,25 +62,10 @@ function App() {
   }, [activeListId])
 
   useEffect(() => {
-  console.log("activeListId:", activeListId)
-}, [activeListId])
+    console.log("activeListId:", activeListId)
+  }, [activeListId])
 
   /* ------- FUNCTIONS (LOGIC) communicates with the backend ------ */
-  // Create list (append only list data)
-  const createList = async () => {
-    if (!listName) return
-
-    const res = await fetch(
-      "http://localhost:8000/lists?name=" + encodeURIComponent(listName),
-      { method: "POST" }
-    )
-
-    const newList = await res.json()
-
-    setLists(prev => [...prev, newList])
-    setListName("")
-  }
-
   // Create item (append only items)
   const createItem = async (text) => {
     const res = await fetch("http://localhost:8000/items", {
@@ -90,13 +78,34 @@ function App() {
     setItems(prev => [...prev, newItem])
   }
 
-const deleteList = async (id) => {
-  await fetch(`http://localhost:8000/lists/${id}`, {
-    method: "DELETE",
-  })
+  // Create list (append only list data)
+  const createList = async () => {
+    if (!listName) return
 
-  setLists(prev => prev.filter(l => l.id !== id))
-}
+    const res = await fetch("http://localhost:8000/item_lists", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: listName,
+        color: newListColor
+      }),
+    })
+
+    const newList = await res.json()
+
+    setLists(prev => [...prev, newList])
+    setListName("")
+    setNewListColor("#666")
+  }
+
+  const deleteList = async (id) => {
+    await fetch(`http://localhost:8000/item_lists/${id}`, {
+      method: "DELETE",
+    })
+
+    setLists(prev => prev.filter(l => l.id !== id))
+  }
+
   const deleteItem = async (id) => {
     await fetch(`http://localhost:8000/items/${id}`, {
       method: "DELETE",
@@ -135,11 +144,11 @@ const deleteList = async (id) => {
     window.addEventListener('mouseup', onUp)
   }
 
-  const updateList = async (id, name) => {
-    await fetch(`http://localhost:8000/lists/${id}`, {
+  const updateList = async (id, name, color) => {
+    await fetch(`http://localhost:8000/item_lists/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, color }),
     })
 
     setLists(prev =>
@@ -183,7 +192,7 @@ const deleteList = async (id) => {
 
         <ul>
           {lists.map(list => (
-            <List
+            <ItemList
               key={list.id}
               list={list}
               setActiveListId={setActiveListId}
@@ -193,6 +202,8 @@ const deleteList = async (id) => {
               setEditingListId={setEditingListId}
               setEditingListValue={setEditingListValue}
               updateList={updateList}
+              editingColor={editingColor}
+              setEditingColor={setEditingColor}
             />
           ))}
         </ul>
@@ -237,9 +248,16 @@ const deleteList = async (id) => {
             <h3>New List</h3>
 
             <input
+              type="text"
               value={listName}
               onChange={(e) => setListName(e.target.value)}
               placeholder="List name"
+            />
+
+            <input
+              type="color"
+              value={newListColor}
+              onChange={(e) => setNewListColor(e.target.value)}
             />
 
           <div className="modal-actions">
@@ -270,6 +288,12 @@ const deleteList = async (id) => {
               placeholder="Item text"
             />
 
+            <input
+              type="color"
+              value={newItemColor}
+              onChange={(e) => setNewItemColor(e.target.value)}
+            />
+
             <div className="modal-actions">
               <button onClick={() => setIsItemOpen(false)}>
                 Cancel
@@ -296,6 +320,7 @@ const deleteList = async (id) => {
 
 // shared component: view mode, edit mode,save
 function EditableRow({
+  color,
   isEditing,
   value,
   onChange,
@@ -303,15 +328,26 @@ function EditableRow({
   onSave,
   onDelete,
   children,
+  editingColor,
+  setEditingColor,
 }) {
   return (
-    <li className="row">
+    <li
+      className="row"
+      style={{ '--row-color': color || '#666' }}>
       {isEditing ? (
         <>
           <input
             value={value}
             onChange={(e) => onChange(e.target.value)}
           />
+
+          <input
+            type="color"
+            value={editingColor}
+            onChange={(e) => setEditingColor(e.target.value)}
+          />
+
           <button onClick={onSave}>save</button>
         </>
       ) : (
@@ -329,9 +365,10 @@ function EditableRow({
 }
 
 // list item component: renders a list of lists
-function List(props) {
+function ItemList(props) {
   const {
     list,
+    editingColor,
     editingListId,
     editingListValue,
     setEditingListId,
@@ -339,27 +376,31 @@ function List(props) {
     updateList,
     deleteList,
     setActiveListId,
+    setEditingColor,
   } = props
 
   return (
     <EditableRow
+      color={list.color}
       isEditing={editingListId === list.id}
       value={editingListValue}
       onChange={setEditingListValue}
       onEdit={() => {
         setEditingListId(list.id)
         setEditingListValue(list.name)
+        setEditingColor(list.color)
       }}
-      onSave={() => updateList(list.id, editingListValue)}
+      onSave={() => updateList(list.id, editingListValue, editingColor)}
       onDelete={() => deleteList(list.id)}
+      setEditingColor={setEditingColor}
     >
-      <span
-        className="list-name"
-        onClick={() => setActiveListId(list.id)}
-      >
-        {list.name}
-      </span>
-    </EditableRow>
+    <span
+      className="list-name"
+      onClick={() => setActiveListId(list.id)}
+    >
+      {list.name}
+    </span>
+  </EditableRow>
   )
 }
 
@@ -378,6 +419,7 @@ function Item(props) {
 
   return (
     <EditableRow
+      color={item.color}
       isEditing={editingId === item.id}
       value={editValue}
       onChange={setEditValue}

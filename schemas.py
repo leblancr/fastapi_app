@@ -33,3 +33,14 @@ class ItemResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ListCreate(BaseModel):
+    name: str
+    color: str = "#666"
+
+    
+class ListUpdate(BaseModel):
+    name: str
+    color: str
+

@@ -5,13 +5,16 @@ from sqlalchemy.orm import Session
 from schemas import ItemCreate, ItemResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.services import list_service, item_service
-from models import ItemList
 from pydantic import BaseModel
 from typing import List
+from models import ItemList
+from schemas import ListUpdate
 
 
-class ListUpdate(BaseModel):
+class ListCreate(BaseModel):
     name: str
+    color: str = "#666"
+
 
 app = FastAPI()
 app.add_middleware(
@@ -40,8 +43,9 @@ def get_db():
 # API routes
 # create list
 @app.post("/item_lists")
-def create_list(name: str, db: Session = Depends(get_db)):
-    l = List(name=name)
+def create_list(data: ListCreate, db: Session = Depends(get_db)):
+    l = ItemList(name=data.name, color=data.color)
+    print(data)
     db.add(l)
     db.commit()
     db.refresh(l)
@@ -91,8 +95,17 @@ def toggle_item_completed(item_id: int, db: Session = Depends(get_db)):
 
 # edit item_lists
 @app.put("/item_lists/{item_list_id}")
-def update_item_list(item_list_id: int, updated: ListUpdate, db: Session = Depends(get_db)):
-    lst = db.query(List).filter(List.id == item_list_id).first()
+def update_item_list(
+    item_list_id: int,  # which row to update
+    updated: ListUpdate,  # new values sent from frontend
+    db: Session = Depends(get_db)  # database connection
+):
+    lst = db.query(ItemList).filter(ItemList.id == item_list_id).first()
+
+    print("ID:", item_list_id)
+    print("BEFORE:", lst.name, lst.color)
+
+    lst.color = updated.color
     lst.name = updated.name
     db.commit()
     db.refresh(lst)

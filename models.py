@@ -4,8 +4,9 @@ from database import Base
 
 # models (SQLAlchemy) → database layer
 class ItemList(Base):
-    __tablename__ = "lists"
+    __tablename__ = "item_lists"
 
+    color = Column(String, default="#666")
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
 
@@ -32,6 +33,7 @@ class Item(Base):
     """
     __tablename__ = "items"
 
+    color = Column(String, default="#666")
     completed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)
     list_id = Column(Integer, ForeignKey("lists.id"))

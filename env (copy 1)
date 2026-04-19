@@ -1,0 +1,1 @@
+DATABASE_URL=postgresql://rich@localhost:5432/fastapi_app_db

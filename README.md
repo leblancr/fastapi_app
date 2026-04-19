@@ -29,7 +29,7 @@ And reverse on output:
 PostgreSQL → TaskDB → Task (response)
 
 To start frontend:
-cd react
+cd frontend
 npm run dev
 
 State:
