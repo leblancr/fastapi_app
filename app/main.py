@@ -11,11 +11,6 @@ from models import ItemList
 from schemas import ListUpdate, ItemUpdate
 
 
-class ListCreate(BaseModel):
-    name: str
-    color: str = "#666"
-
-
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -41,6 +36,12 @@ def get_db():
 
 
 # API routes
+# create item
+@app.post("/items", response_model=ItemResponse, status_code=201)
+def create_item(item: ItemCreate, db: Session = Depends(get_db)):
+    return item_service.create_item(db, item.text, item.list_id)
+
+
 # create list
 @app.post("/item_lists")
 def create_list(data: ListCreate, db: Session = Depends(get_db)):
@@ -50,12 +51,6 @@ def create_list(data: ListCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(l)
     return l
-
-
-# create item
-@app.post("/items", response_model=ItemResponse, status_code=201)
-def create_item(item: ItemCreate, db: Session = Depends(get_db)):
-    return item_service.create_item(db, item.text, item.list_id, item.color)
 
 
 # delete list

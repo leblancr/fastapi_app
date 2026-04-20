@@ -7,9 +7,7 @@ from database import commit
 
 # endpoints
 def create_item(db: Session, text: str, list_id: int, color="#666"):
-    item = Item(color=color, text=text, list_id=list_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="item not found")
+    item = Item(text=text, list_id=list_id)
     db.add(item)
     commit(db)
     db.refresh(item)
@@ -52,8 +50,6 @@ def update_item(db: Session, item_id: int, updated: ItemUpdate):
     print("ITEM MODEL ATTRS:", dir(item))
     # update_item.py
     item.text = updated.text
-    item.color = updated.color or "#666"  # to stop null values into db
-
     commit(db)
     db.refresh(item)
     return item

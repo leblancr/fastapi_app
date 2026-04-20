@@ -20,7 +20,6 @@ function App() {
   const [lists, setLists] = useState([])
   const [items, setItems] = useState([])
   const [listName, setListName] = useState("")
-  const [newItemColor, setNewItemColor] = useState("#666")
   const [newItemText, setNewItemText] = useState("")
   const [newListColor, setNewListColor] = useState("#666")
   const activeListName = lists.find(l => l.id === activeListId)?.name
@@ -195,7 +194,9 @@ function App() {
         </div>
 
         <ul>
-          {lists.map(list => (
+          {[...lists]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(list => (
             <ItemList
               key={list.id}
               list={list}
@@ -288,19 +289,22 @@ function App() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
 
             <h3>New Item</h3>
-
-            <input
-              value={newItemText}
-              onChange={(e) => setNewItemText(e.target.value)}
-              placeholder="Item text"
-            />
-
-            <input
-              type="color"
-              value={newItemColor}
-              onChange={(e) => setNewItemColor(e.target.value)}
-            />
-
+              <form
+                onSubmit={(e) => {
+                  console.log("SUBMIT FIRED")
+                  e.preventDefault()
+                  if (!newItemText.trim()) return
+                  createItem(newItemText)
+                  setNewItemText("")
+                  setIsItemOpen(false)
+                }}
+              >
+                <input
+                  value={newItemText}
+                  onChange={(e) => setNewItemText(e.target.value)}
+                  placeholder="Item text"
+                />
+              </form>
             <div className="modal-actions">
               <button onClick={() => setIsItemOpen(false)}>
                 Cancel
@@ -327,6 +331,7 @@ function App() {
 
 // shared component: view mode, edit mode,save
 function EditableRow({
+  children,
   color,
   isEditing,
   value,
@@ -335,7 +340,7 @@ function EditableRow({
   onEdit,
   onSave,
   onDelete,
-  children,
+  showColor,
   }) {
   return (
     <li
@@ -348,11 +353,13 @@ function EditableRow({
             onChange={(e) => onChange(e.target.value)}
           />
 
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => onColorChange(e.target.value)}
-          />
+          {showColor && (
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => onColorChange(e.target.value)}
+            />
+          )}
 
           <button onClick={onSave}>save</button>
         </>
@@ -398,6 +405,7 @@ function Item(props) {
       }}
       onSave={() => updateItem(item.id, editValue, localColor, item.completed)}
       onDelete={() => deleteItem(item.id)}
+      showColor={false}
     >
       <span
         onClick={() => toggleItem(item.id)}
@@ -440,6 +448,7 @@ function ItemList(props) {
       }}
       onSave={() => updateList(list.id, editingListValue, list.color)}
       onDelete={() => deleteList(list.id)}
+      showColor={true}
     >
     <span
       className="list-name"

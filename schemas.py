@@ -35,8 +35,8 @@ class ItemResponse(BaseModel):
 
 
 class ItemUpdate(BaseModel):
-    text: str
-
+    text: str | None = None
+    
 
 class ListCreate(BaseModel):
     name: str
