@@ -180,6 +180,8 @@ function App() {
     setEditingListValue("")
   }
 
+  const activeListColor = lists.find(l => l.id === activeListId)?.color
+
   /* ---------------- Return (UI) ---------------- */
   return (
     <div className="app">
@@ -230,6 +232,7 @@ function App() {
               <Item
                 key={item.id}
                 item={item}
+                parentColor={activeListColor}
                 editingColor={editingColor}
                 editingId={editingId}
                 editValue={editValue}
@@ -380,7 +383,7 @@ function Item(props) {
     toggleItem,
   } = props
 
-  const [localColor, setLocalColor] = useState(item.color)
+  const localColor = props.parentColor
 
   return (
     <EditableRow
@@ -388,7 +391,7 @@ function Item(props) {
       isEditing={editingId === item.id}
       value={editValue}
       onChange={setEditValue}
-      onColorChange={setLocalColor}
+      onColorChange={() => {}}
       onEdit={() => {
         setEditingId(item.id)
         setEditValue(item.text)
