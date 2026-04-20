@@ -13,7 +13,6 @@ class ItemCreate(BaseModel):
     """
     list_id: int
     text: str
-    color: str = "#666"
 
 class ItemResponse(BaseModel):
     """
@@ -29,7 +28,6 @@ class ItemResponse(BaseModel):
 
     id: int
     text: str
-    color: str
     completed: bool
 
     class Config:
@@ -38,7 +36,6 @@ class ItemResponse(BaseModel):
 
 class ItemUpdate(BaseModel):
     text: str
-    color: str
 
 
 class ListCreate(BaseModel):

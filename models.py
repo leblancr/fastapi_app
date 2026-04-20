@@ -33,7 +33,6 @@ class Item(Base):
     """
     __tablename__ = "items"
 
-    color = Column(String, default="#666")
     completed = Column(Boolean, default=False)
     id = Column(Integer, primary_key=True, index=True)
     list_id = Column(Integer, ForeignKey("item_lists.id"))
