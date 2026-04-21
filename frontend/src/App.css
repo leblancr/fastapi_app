@@ -203,6 +203,7 @@ input, button {
 
 .row {
   align-items: center;
+  background: color-mix(in srgb, var(--row-color) 13%, black);
   border: 1px solid color-mix(in srgb, var(--row-color) 33%, transparent);
   border-radius: 9999px;
   box-sizing: border-box;
@@ -263,6 +264,7 @@ input, button {
 }
 
 .sidebar .row {
+  background: transparent;
   border: 1px solid color-mix(in srgb, var(--row-color) 50%, transparent);
   border-radius: 9999px;
   display: flex;

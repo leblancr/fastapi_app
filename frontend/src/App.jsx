@@ -222,7 +222,14 @@ function App() {
 
       {/* RIGHT: items */}
       <div className="content">
-      <h2>{activeListName}</h2>
+        <h2
+          style={{
+            border: `1px solid ${activeListColor || "#666"}`,
+            backgroundColor: `${activeListColor || "#666"}20`
+          }}
+        >
+          {activeListName}
+        </h2>
         {/* create item section */}
         <div className="add-item">
           <button onClick={() => setIsItemOpen(true)}>
@@ -344,12 +351,16 @@ function EditableRow({
   onSave,
   onDelete,
   showColor,
+  style
   }) {
   return (
     <li
       className={`row ${isActive ? "active" : ""}`}
       onClick={onClick}
-      style={{ '--row-color': color || '#666' }}
+      style={{
+        ...style,
+        '--row-color': color || '#666'
+      }}
     >
 
       {isEditing ? (
@@ -389,6 +400,7 @@ function Item(props) {
     item,
     editingId,
     editValue,
+    parentColor,
     setEditingId,
     setEditValue,
     updateItem,
@@ -396,11 +408,9 @@ function Item(props) {
     toggleItem,
   } = props
 
-  const localColor = props.parentColor
-
   return (
     <EditableRow
-      color={localColor}
+      color={parentColor}
       isEditing={editingId === item.id}
       value={editValue}
       onChange={setEditValue}
@@ -409,9 +419,13 @@ function Item(props) {
         setEditingId(item.id)
         setEditValue(item.text)
       }}
-      onSave={() => updateItem(item.id, editValue, localColor, item.completed)}
+      onSave={() => updateItem(item.id, editValue, parentColor, item.completed)}
       onDelete={() => deleteItem(item.id)}
       showColor={false}
+      style={{
+        '--item-bg-color': parentColor,
+        '--item-border-color': parentColor
+      }}
     >
       <span
         onClick={() => toggleItem(item.id)}
@@ -459,6 +473,10 @@ function ItemList(props) {
       onSave={() => updateList(list.id, editingListValue, editingColor)}
       onDelete={() => deleteList(list.id)}
       showColor={true}
+      style={{
+        '--list-bg-color': list.color,
+        '--list-border-color': list.color
+      }}
     >
       <span className={`list-name ${isActive ? "active" : ""}`}>
         {list.name}
