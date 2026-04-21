@@ -214,6 +214,10 @@ input, button {
   width: 100%;
 }
 
+.row.active {
+  background: color-mix(in srgb, var(--row-color) 60%, black);
+}
+
 .row:hover:not(.no-hover) {
   border: 1px solid var(--row-color);
   background-color: color-mix(in srgb, var(--row-color) 20%, transparent);
@@ -265,6 +269,10 @@ input, button {
   margin-bottom: 6px;
   padding: 6px 10px;
   box-sizing: border-box;
+}
+
+.sidebar .row.active {
+  background-color: color-mix(in srgb, var(--row-color) 16%, transparent);
 }
 
 .sidebar .row:hover {

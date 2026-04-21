@@ -154,7 +154,7 @@ function App() {
 
     setItems(prev =>
       prev.map(t =>
-        t.id === id ? { ...t, text, color } : t
+        t.id === id ? { ...t, text, color: color ?? t.color ?? "#666" } : t
       )
     )
 
@@ -198,6 +198,7 @@ function App() {
             .sort((a, b) => a.name.localeCompare(b.name))
             .map(list => (
             <ItemList
+              activeListId={activeListId}
               key={list.id}
               list={list}
               setActiveListId={setActiveListId}
@@ -333,6 +334,7 @@ function App() {
 function EditableRow({
   children,
   color,
+  isActive,
   isEditing,
   value,
   onChange,
@@ -345,10 +347,10 @@ function EditableRow({
   }) {
   return (
     <li
-      className="row"
+      className={`row ${isActive ? "active" : ""}`}
       onClick={onClick}
       style={{ '--row-color': color || '#666' }}
-      >
+    >
 
       {isEditing ? (
         <>
@@ -426,39 +428,42 @@ function Item(props) {
 // list item component: renders a list of lists
 function ItemList(props) {
   const {
-    list,
+    activeListId,
+    deleteList,
+    editingColor,
     editingListId,
     editingListValue,
+    setEditingColor,
     setEditingListId,
     setEditingListValue,
     updateList,
-    deleteList,
+    list,
     setActiveListId,
-    setEditingColor,
-    setNewListColor
   } = props
 
-  console.log("setEditingColor is:", setEditingColor)
+  const isActive = activeListId === list.id
 
   return (
     <EditableRow
-      color={list.color}
+      color={editingListId === list.id ? editingColor : list.color}      isActive={isActive}
       isEditing={editingListId === list.id}
       value={editingListValue}
-      onChange={(e) => setNewListColor(e.target.value)}
+      onChange={setEditingListValue}
       onClick={() => setActiveListId(list.id)}
+      onColorChange={setEditingColor}
       onEdit={() => {
         setEditingListId(list.id)
         setEditingListValue(list.name)
+        setEditingColor(list.color)
       }}
-      onSave={() => updateList(list.id, editingListValue, list.color)}
+      onSave={() => updateList(list.id, editingListValue, editingColor)}
       onDelete={() => deleteList(list.id)}
       showColor={true}
     >
-    <span className="list-name">
-      {list.name}
-    </span>
-  </EditableRow>
+      <span className={`list-name ${isActive ? "active" : ""}`}>
+        {list.name}
+      </span>
+    </EditableRow>
   )
 }
 
