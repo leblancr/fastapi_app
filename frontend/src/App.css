@@ -203,10 +203,12 @@ input, button {
 
 .row {
   align-items: center;
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, var(--row-color) 33%, transparent);
+  border-radius: 9999px;
   box-sizing: border-box;
   display: flex;
   justify-content: flex-start;
+  margin-bottom: 6px;
   min-width: 0;
   padding: 0 12px;  /* top | right | bottom | left */
   width: 100%;
@@ -214,7 +216,7 @@ input, button {
 
 .row:hover:not(.no-hover) {
   border: 1px solid var(--row-color);
-  background-color: color-mix(in srgb, var(--row-color) 15%, transparent);
+  background-color: color-mix(in srgb, var(--row-color) 20%, transparent);
   border-radius: 9999px;
 }
 
@@ -234,8 +236,8 @@ input, button {
 
 /* LEFT */
 .sidebar {
-  flex-shrink: 0;
   border-right: 1px solid #333;
+  flex-shrink: 0;
   padding: 26px;
   overflow-y: auto;
 }
@@ -257,14 +259,15 @@ input, button {
 }
 
 .sidebar .row {
-  display: flex;
-  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--row-color) 50%, transparent);
   border-radius: 9999px;
-  border: none;
+  display: flex;
+  margin-bottom: 6px;
+  padding: 6px 10px;
   box-sizing: border-box;
 }
 
 .sidebar .row:hover {
   border: 1px solid var(--row-color);
-  background-color: color-mix(in srgb, var(--row-color) 15%, transparent);
+  background-color: color-mix(in srgb, var(--row-color) 20%, transparent);
 }

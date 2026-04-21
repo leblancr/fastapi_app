@@ -336,6 +336,7 @@ function EditableRow({
   isEditing,
   value,
   onChange,
+  onClick,
   onColorChange,
   onEdit,
   onSave,
@@ -345,7 +346,10 @@ function EditableRow({
   return (
     <li
       className="row"
-      style={{ '--row-color': color || '#666' }}>
+      onClick={onClick}
+      style={{ '--row-color': color || '#666' }}
+      >
+
       {isEditing ? (
         <>
           <input
@@ -442,6 +446,7 @@ function ItemList(props) {
       isEditing={editingListId === list.id}
       value={editingListValue}
       onChange={(e) => setNewListColor(e.target.value)}
+      onClick={() => setActiveListId(list.id)}
       onEdit={() => {
         setEditingListId(list.id)
         setEditingListValue(list.name)
@@ -450,10 +455,7 @@ function ItemList(props) {
       onDelete={() => deleteList(list.id)}
       showColor={true}
     >
-    <span
-      className="list-name"
-      onClick={() => setActiveListId(list.id)}
-    >
+    <span className="list-name">
       {list.name}
     </span>
   </EditableRow>
